@@ -124,9 +124,6 @@
   </div>
 
   <script>
-    // Use the global API_BASE if it exists, otherwise default to '' (same directory)
-    const API_BASE = window.API_BASE || '';
-
     document.addEventListener('DOMContentLoaded', function () {
       const authSection = document.getElementById('auth-section');
       const adminContent = document.getElementById('admin-content');
@@ -145,12 +142,19 @@
 
       // Global state
       let allDonations = [];        // Will hold all donations fetched once
-      let filteredDonations = [];   // Will hold the currently filtered donations
+      let filteredDonations = [];     // Will hold the currently filtered donations
       let currentPage = 1;
       const donationsPerPage = 30;
 
+      // Helper function to build full API URLs
+      function apiUrl(endpoint) {
+        // window.API_BASE_URL is defined at the end of the file.
+        // If it's empty, it assumes the API is in the same directory.
+        return (window.API_BASE_URL || "") + endpoint;
+      }
+
       // Check if admin setup is complete
-      fetch(API_BASE + 'admin-api/check-setup')
+      fetch(apiUrl("admin-api/check-setup"))
         .then(res => res.json())
         .then(data => {
           if (!data.setup) {
@@ -175,7 +179,7 @@
           e.preventDefault();
           const username = document.getElementById('reg-username').value;
           const password = document.getElementById('reg-password').value;
-          fetch(API_BASE + 'admin-api/register', {
+          fetch(apiUrl("admin-api/register"), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -206,7 +210,7 @@
           e.preventDefault();
           const username = document.getElementById('login-username').value;
           const password = document.getElementById('login-password').value;
-          fetch(API_BASE + 'admin-api/login', {
+          fetch(apiUrl("admin-api/login"), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -230,7 +234,8 @@
 
       // Fetch all donations from the server (one-time load)
       function loadAllDonations() {
-        fetch(API_BASE + 'admin-api/donations?all=true')
+        // Adjust the route as needed to get ALL donations in one go.
+        fetch(apiUrl("admin-api/donations?all=true"))
           .then(res => {
             if (res.status === 401) {
               alert('Session expired. Please login again.');
@@ -262,7 +267,7 @@
         if (currentPage < 1) currentPage = 1;
         if (currentPage > totalPages) currentPage = totalPages;
 
-        // If there is no data, just show page 1/1
+        // If there is no data, just show page 0/0
         if (totalPages === 0) {
           pageInfo.textContent = `Page 0 of 0`;
           prevPageBtn.disabled = true;
@@ -323,11 +328,11 @@
         filteredDonations = allDonations.filter(donation => {
           const donationDate = new Date(donation.created_at);
 
-          // If we have a start date, donationDate >= startDate
+          // If we have a start date, donationDate must be >= startDate
           if (startDate && donationDate < startDate) {
             return false;
           }
-          // If we have an end date, donationDate <= endDate (end of day)
+          // If we have an end date, donationDate must be <= endDate (end of day)
           if (endDate) {
             const endOfDay = new Date(endDate);
             endOfDay.setHours(23, 59, 59, 999);
@@ -372,7 +377,7 @@
 
       // Logout
       document.getElementById('logout-btn').addEventListener('click', function() {
-        fetch(API_BASE + 'admin-api/logout', { method: 'POST' })
+        fetch(apiUrl("admin-api/logout"), { method: 'POST' })
           .then(() => location.reload())
           .catch(err => console.error(err));
       });
@@ -382,7 +387,7 @@
         e.preventDefault();
         const username = document.getElementById('new-username').value;
         const password = document.getElementById('new-password').value;
-        fetch(API_BASE + 'admin-api/users', {
+        fetch(apiUrl("admin-api/users"), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -394,17 +399,15 @@
     });
   </script>
 
-  <!-- API Base URL Configuration -->
+  <!--
+    API Base URL Configuration:
+    Set window.API_BASE_URL to an external API URL if needed.
+    For example:
+      window.API_BASE_URL = "https://testrip-production.up.railway.app/";
+    If you leave it as an empty string (""), the API will be assumed to be in the same directory.
+  -->
   <script>
-    /*
-      Set your API base URL here.
-      - Leave it as an empty string ('') if your API is hosted in the same directory.
-      - Otherwise, provide the full URL with a trailing slash.
-      
-      For example:
-         window.API_BASE = 'https://testrip-production.up.railway.app/';
-    */
-    window.API_BASE = 'https://testrip-production.up.railway.app/'; // Change this value as needed.
+    window.API_BASE_URL = ""; // <-- Set your API base URL here (include trailing slash if not empty)
   </script>
 </body>
 </html>
