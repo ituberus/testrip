@@ -124,6 +124,9 @@
   </div>
 
   <script>
+    // Use the global API_BASE if it exists, otherwise default to '' (same directory)
+    const API_BASE = window.API_BASE || '';
+
     document.addEventListener('DOMContentLoaded', function () {
       const authSection = document.getElementById('auth-section');
       const adminContent = document.getElementById('admin-content');
@@ -147,7 +150,7 @@
       const donationsPerPage = 30;
 
       // Check if admin setup is complete
-      fetch('/admin-api/check-setup')
+      fetch(API_BASE + 'admin-api/check-setup')
         .then(res => res.json())
         .then(data => {
           if (!data.setup) {
@@ -172,7 +175,7 @@
           e.preventDefault();
           const username = document.getElementById('reg-username').value;
           const password = document.getElementById('reg-password').value;
-          fetch('/admin-api/register', {
+          fetch(API_BASE + 'admin-api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -203,7 +206,7 @@
           e.preventDefault();
           const username = document.getElementById('login-username').value;
           const password = document.getElementById('login-password').value;
-          fetch('/admin-api/login', {
+          fetch(API_BASE + 'admin-api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -227,9 +230,7 @@
 
       // Fetch all donations from the server (one-time load)
       function loadAllDonations() {
-        // Example route: /admin-api/donations?all=true (depends on your server-side implementation)
-        // Adjust the route as needed to get ALL donations in one go.
-        fetch('/admin-api/donations?all=true')
+        fetch(API_BASE + 'admin-api/donations?all=true')
           .then(res => {
             if (res.status === 401) {
               alert('Session expired. Please login again.');
@@ -319,7 +320,6 @@
         const endDate = endDateValue ? new Date(endDateValue) : null;
 
         // Filter based on created_at date
-        // Adjust parsing as needed for your date format
         filteredDonations = allDonations.filter(donation => {
           const donationDate = new Date(donation.created_at);
 
@@ -327,9 +327,8 @@
           if (startDate && donationDate < startDate) {
             return false;
           }
-          // If we have an end date, donationDate <= endDate
+          // If we have an end date, donationDate <= endDate (end of day)
           if (endDate) {
-            // set endDate to end of day (optional if your date strings include time)
             const endOfDay = new Date(endDate);
             endOfDay.setHours(23, 59, 59, 999);
             if (donationDate > endOfDay) {
@@ -373,7 +372,7 @@
 
       // Logout
       document.getElementById('logout-btn').addEventListener('click', function() {
-        fetch('/admin-api/logout', { method: 'POST' })
+        fetch(API_BASE + 'admin-api/logout', { method: 'POST' })
           .then(() => location.reload())
           .catch(err => console.error(err));
       });
@@ -383,7 +382,7 @@
         e.preventDefault();
         const username = document.getElementById('new-username').value;
         const password = document.getElementById('new-password').value;
-        fetch('/admin-api/users', {
+        fetch(API_BASE + 'admin-api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -393,6 +392,19 @@
         .catch(err => alert('Error: ' + err.message));
       });
     });
+  </script>
+
+  <!-- API Base URL Configuration -->
+  <script>
+    /*
+      Set your API base URL here.
+      - Leave it as an empty string ('') if your API is hosted in the same directory.
+      - Otherwise, provide the full URL with a trailing slash.
+      
+      For example:
+         window.API_BASE = 'https://testrip-production.up.railway.app/';
+    */
+    window.API_BASE = 'https://testrip-production.up.railway.app/'; // Change this value as needed.
   </script>
 </body>
 </html>
