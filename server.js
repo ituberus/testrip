@@ -6,11 +6,10 @@ const session = require('express-session');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const stripe = require('stripe');
-const helmet = require('helmet');
 const morgan = require('morgan');
 const { promisify } = require('util');
 const bodyParser = require('body-parser');
-const cors = require('cors'); // <-- Added cors package
+const cors = require('cors'); // <-- CORS package still used
 require('dotenv').config();
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -21,26 +20,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'somesecret';
 
-// Use Helmet to set secure HTTP headers
-app.use(helmet());
-
 // Allow ANY domain for CORS (not secure, just temporary as requested)
 app.use(cors());
-
-// Set Helmet CSP (you can remove or adjust if needed)
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'", "data:"],
-      // Allow scripts from your own domain and Stripe.
-      scriptSrc: ["'self'", "https://js.stripe.com", "'unsafe-inline'"],
-      // Allow styles from your own domain and inline styles.
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      // Allow frames from your own domain and Stripe.
-      frameSrc: ["'self'", "https://js.stripe.com", "https://api.stripe.com", "data:"],
-    },
-  })
-);
 
 // Use morgan for HTTP logging
 app.use(morgan('combined'));
